@@ -1,1 +1,0 @@
-# LEMBRETE-AR
