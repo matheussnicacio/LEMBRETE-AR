@@ -8,6 +8,7 @@
     "start": "next start",
     "worker": "tsx worker/index.ts",
     "migrate": "tsx scripts/migrate.ts",
+    "test:email": "tsx scripts/test-email.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

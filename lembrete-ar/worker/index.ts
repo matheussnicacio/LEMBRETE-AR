@@ -5,6 +5,8 @@ import { isInSendWindow } from "../src/lib/window";
 
 const TICK_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 4; // 1 envio + 3 novas tentativas
+// So para teste: envia fora da janela seg-sab 8h-18h. NAO usar em producao.
+const IGNORE_WINDOW = process.env.IGNORE_SEND_WINDOW === "true";
 
 async function sendPendingEmails() {
   const client = await pool.connect();
@@ -23,8 +25,9 @@ async function sendPendingEmails() {
        limit 100
        for update of r skip locked`);
     const base = process.env.APP_URL ?? "http://localhost:3000";
+    let waiting = 0;
     for (const r of rows) {
-      if (!isInSendWindow(new Date(), r.timezone)) continue; // fora da janela: fica para a proxima
+      if (!IGNORE_WINDOW && !isInSendWindow(new Date(), r.timezone)) { waiting++; continue; } // fora da janela: fica para a proxima
       const link = `${base}/r/${r.token}`;
       const optOut = `${base}/o/${r.opt_out_token}`;
       const text = `Ola, ${r.name.split(" ")[0]}! Esta na hora da manutencao do seu ${r.label} (${r.empresa}).\nPara agendar: ${link}\n\nNao quer mais receber: ${optOut}`;
@@ -32,8 +35,10 @@ async function sendPendingEmails() {
       try {
         await sendEmail(r.email, `${r.empresa}: hora da manutencao do seu ar-condicionado`, html, text);
         await client.query("update reminders set status='sent', sent_at=now(), attempts=attempts+1, last_error=null where id=$1", [r.id]);
+        console.log(`[worker] e-mail enviado para ${r.email} (lembrete ${r.id})`);
       } catch (e) {
         const attempts = r.attempts + 1;
+        console.error(`[worker] FALHA ao enviar para ${r.email} (tentativa ${attempts}/${MAX_ATTEMPTS}):`, String(e));
         const failed = attempts >= MAX_ATTEMPTS;
         // espera crescente: 5, 10, 20 min
         await client.query(
@@ -44,6 +49,8 @@ async function sendPendingEmails() {
       }
     }
     await client.query("commit");
+    if (waiting) console.log(`[worker] ${waiting} e-mail(s) aguardando a janela de envio (seg-sab, 8h-18h, fuso da conta)`);
+    if (!rows.length) console.log("[worker] nenhum e-mail pendente para enviar agora");
   } catch (e) {
     await client.query("rollback");
     throw e;
@@ -66,6 +73,9 @@ async function tick() {
   }
 }
 
+console.log(
+  `[worker] iniciado | RESEND_API_KEY: ${process.env.RESEND_API_KEY ? "definida" : "AUSENTE (e-mails so serao impressos aqui)"} | EMAIL_FROM: ${process.env.EMAIL_FROM ?? "AUSENTE"} | janela de envio: ${IGNORE_WINDOW ? "IGNORADA (teste)" : "seg-sab 8h-18h"}`
+);
 let timer: NodeJS.Timeout;
 tick();
 timer = setInterval(tick, TICK_MS);
