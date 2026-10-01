@@ -1,0 +1,16 @@
+# Desenvolvimento local: so o Postgres. App e worker rodam com npm no host.
+#   docker compose -f docker-compose.dev.yml up -d
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: lembrete
+      POSTGRES_PASSWORD: lembrete
+      POSTGRES_DB: lembrete
+    ports:
+      - "5440:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+
+volumes:
+  pgdata_dev:

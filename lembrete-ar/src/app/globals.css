@@ -1,0 +1,25 @@
+:root{--bg:#f6f8fa;--card:#fff;--fg:#14202b;--muted:#5b6b79;--brand:#0a7ea4;--brand-fg:#fff;--line:#e2e8ee;--warn:#c2410c;--ok:#15803d}
+@media (prefers-color-scheme:dark){:root{--bg:#0e151b;--card:#16212a;--fg:#e8eef3;--muted:#93a3b1;--line:#243340;--brand:#38b6dd;--brand-fg:#06202b}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--brand)}
+.shell{display:flex;min-height:100vh}
+.side{display:none;width:220px;padding:20px;border-right:1px solid var(--line);background:var(--card)}
+.side a{display:block;padding:10px 12px;border-radius:8px;text-decoration:none;color:var(--fg)}
+.side a:hover{background:var(--bg)}
+.main{flex:1;max-width:760px;margin:0 auto;width:100%;padding:16px 16px 96px}
+.bottom{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
+.bottom a{flex:1;text-align:center;padding:14px 4px;text-decoration:none;color:var(--fg);font-weight:600}
+@media(min-width:800px){.side{display:block}.bottom{display:none}.main{padding-bottom:32px}}
+h1{font-size:1.4rem;margin:.2rem 0 1rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.muted{color:var(--muted);font-size:.9rem}
+.late{color:var(--warn);font-weight:600}
+.btn{display:block;width:100%;text-align:center;padding:14px;border:0;border-radius:10px;background:var(--brand);color:var(--brand-fg);font-weight:700;font-size:1rem;text-decoration:none;cursor:pointer;margin-top:10px}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.link{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:8px;font:inherit}
+label{display:block;margin:10px 0 4px;font-weight:600;font-size:.9rem}
+input,select{width:100%;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit}
+.err{color:var(--warn)}
+.center{max-width:420px;margin:10vh auto;padding:16px}
