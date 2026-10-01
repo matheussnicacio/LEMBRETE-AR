@@ -9,6 +9,7 @@ const schema = z.object({
   performed_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   kind: z.enum(["limpeza", "higienizacao", "preventiva", "corretiva", "instalacao"]).default("limpeza"),
   price: z.string().optional(),
+  back: z.string().optional(),
 });
 
 // Registrar servico: atualiza last/next na mesma transacao e cancela lembretes do ciclo anterior.
@@ -21,11 +22,13 @@ export async function POST(req: Request) {
   const cents = d.price ? Math.round(parseFloat(d.price.replace(",", ".")) * 100) : null;
   if (cents !== null && (!Number.isFinite(cents) || cents < 0)) return NextResponse.redirect(new URL("/app/service/new?erro=valor", req.url), 303);
 
+  let backTo = "/app";
   const client = await pool.connect();
   try {
     await client.query("begin");
-    const eq = await client.query("select interval_days from equipment where id=$1 and account_id=$2 for update", [d.equipment_id, s.accountId]);
+    const eq = await client.query("select interval_days, customer_id from equipment where id=$1 and account_id=$2 for update", [d.equipment_id, s.accountId]);
     if (!eq.rowCount) { await client.query("rollback"); return new NextResponse("equipamento nao encontrado", { status: 404 }); }
+    if (d.back === "customer") backTo = `/app/customers/${eq.rows[0].customer_id}`;
     await client.query(
       "insert into services (account_id, equipment_id, performed_on, kind, price_cents, user_id) values ($1,$2,$3,$4,$5,$6)",
       [s.accountId, d.equipment_id, d.performed_on, d.kind, cents, s.userId]
@@ -41,5 +44,5 @@ export async function POST(req: Request) {
       [s.accountId, s.userId, JSON.stringify({ equipment_id: d.equipment_id })]);
     await client.query("commit");
   } catch (e) { await client.query("rollback"); throw e; } finally { client.release(); }
-  return NextResponse.redirect(new URL("/app", req.url), 303);
+  return NextResponse.redirect(new URL(backTo, req.url), 303);
 }

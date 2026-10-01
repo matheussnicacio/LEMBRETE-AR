@@ -22,13 +22,13 @@ export default async function Clientes({ searchParams }: { searchParams: { q?: s
       <Link className="btn" href="/app/customers/new">+ Novo cliente</Link>
       <div style={{ height: 12 }} />
       {rows.map((c) => (
-        <div className="card" key={c.id}>
-          <div className="row"><strong>{c.name}</strong><span className="muted">{c.equipamentos} equip.</span></div>
+        <Link className="card card-link" href={`/app/customers/${c.id}`} key={c.id}>
+          <div className="row"><strong>{c.name}</strong><span className="muted">{c.equipamentos} equip. ›</span></div>
           <div className="muted">
             {c.sem_data ? "completar data do ultimo servico" : c.proximo ? `proxima: ${formatBR(c.proximo)}` : "sem equipamento"}
             {c.consent_status === "revoked" ? " · nao quer receber" : ""}
           </div>
-        </div>
+        </Link>
       ))}
       {rows.length === 0 && <p className="muted">Nenhum cliente encontrado.</p>}
     </>
