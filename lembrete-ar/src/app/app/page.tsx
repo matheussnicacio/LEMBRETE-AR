@@ -58,7 +58,7 @@ export default async function Hoje() {
 
       {bookings.length > 0 && (
         <>
-          <h1 style={{ marginTop: 24 }}>Pedidos de agendamento</h1>
+          <h1 style={{ marginTop: 32 }}>Pedidos de agendamento</h1>
           {bookings.map((b) => (
             <div className="card" key={b.id}>
               <div className="row"><strong>{b.name}</strong><span className="muted">{b.preferred_period ?? ""}</span></div>

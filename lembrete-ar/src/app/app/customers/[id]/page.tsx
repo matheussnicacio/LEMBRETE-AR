@@ -100,7 +100,7 @@ export default async function ClientePage({ params }: { params: { id: string } }
         );
       })}
 
-      <div className="row" style={{ marginTop: 24 }}>
+      <div className="row" style={{ marginTop: 32 }}>
         <h2 style={{ margin: 0 }}>Historico de servicos</h2>
         {services.length > 0 && <span className="muted">{services.length} {services.length === 1 ? "servico" : "servicos"}{total > 0 ? ` · ${brl(total)}` : ""}</span>}
       </div>
@@ -120,7 +120,7 @@ export default async function ClientePage({ params }: { params: { id: string } }
         </div>
       )}
 
-      <h2 style={{ marginTop: 24 }}>Lembretes enviados</h2>
+      <h2 style={{ marginTop: 32 }}>Lembretes enviados</h2>
       {reminders.length === 0 && <div className="card"><p className="muted" style={{ margin: 0 }}>Nenhum lembrete gerado ainda.</p></div>}
       {reminders.length > 0 && (
         <div className="card timeline">

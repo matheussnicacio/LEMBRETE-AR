@@ -5,7 +5,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   requireSession();
   return (
     <div className="shell">
-      <nav className="side">
+      <nav className="side glass-panel">
         <span className="brand">Lembrete</span>
         <NavLinks />
         <form method="POST" action="/api/auth/logout" style={{ position: "absolute", bottom: 16, left: 14 }}>
@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </form>
       </nav>
       <main className="main">{children}</main>
-      <nav className="bottom">
+      <nav className="bottom glass-panel">
         <NavLinks />
       </nav>
     </div>

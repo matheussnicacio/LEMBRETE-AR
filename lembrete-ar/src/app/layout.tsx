@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "Seu cliente esquece de voltar. Faca ele voltar sozinho.",
   manifest: "/manifest.webmanifest",
 };
-export const viewport: Viewport = { themeColor: "#0a7ea4", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#0052CC", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

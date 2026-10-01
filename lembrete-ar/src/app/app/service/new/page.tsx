@@ -40,7 +40,7 @@ export default async function NovoServico({ searchParams }: { searchParams: { eq
         <button className="btn" type="submit">Servico feito hoje</button>
       </form>
 
-      <h2 style={{ marginTop: 24 }}>Ultimos servicos</h2>
+      <h2 style={{ marginTop: 32 }}>Ultimos servicos</h2>
       {recent.length === 0 && <div className="card"><p className="muted" style={{ margin: 0 }}>Nenhum servico registrado ainda.</p></div>}
       {recent.length > 0 && (
         <div className="card timeline">
