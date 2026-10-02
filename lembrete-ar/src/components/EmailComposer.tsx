@@ -34,7 +34,7 @@ export default function EmailComposer({ customerId, templates }: { customerId: s
         <h2 style={{ marginTop: 0 }}>{done.simulated ? "Modo teste: nada foi enviado de verdade" : "E-mail enviado!"}</h2>
         <p className="muted">
           {done.simulated
-            ? "O servidor esta sem RESEND_API_KEY, entao o e-mail apenas foi registrado no historico e impresso no terminal."
+            ? "O servidor esta sem provedor de e-mail configurado, entao o e-mail apenas foi registrado no historico e impresso no terminal."
             : "Ele ja aparece no historico do cliente. Se o cliente responder, a resposta chega no seu e-mail de login."}
         </p>
         <Link className="btn" href={`/app/customers/${customerId}`}>Voltar ao cliente</Link>

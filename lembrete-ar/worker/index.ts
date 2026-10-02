@@ -1,6 +1,6 @@
 import { pool } from "../src/lib/db";
 import { generateDueReminders } from "../src/lib/reminders";
-import { sendEmail } from "../src/lib/email";
+import { sendEmail, emailProvider } from "../src/lib/email";
 import { isInSendWindow } from "../src/lib/window";
 
 const TICK_MS = 15 * 60 * 1000;
@@ -74,7 +74,7 @@ async function tick() {
 }
 
 console.log(
-  `[worker] iniciado | RESEND_API_KEY: ${process.env.RESEND_API_KEY ? "definida" : "AUSENTE (e-mails so serao impressos aqui)"} | EMAIL_FROM: ${process.env.EMAIL_FROM ?? "AUSENTE"} | janela de envio: ${IGNORE_WINDOW ? "IGNORADA (teste)" : "seg-sab 8h-18h"}`
+  `[worker] iniciado | provedor de e-mail: ${emailProvider() === "none" ? "NENHUM (e-mails so serao impressos aqui)" : emailProvider()} | EMAIL_FROM: ${process.env.EMAIL_FROM ?? "AUSENTE"} | janela de envio: ${IGNORE_WINDOW ? "IGNORADA (teste)" : "seg-sab 8h-18h"}`
 );
 let timer: NodeJS.Timeout;
 tick();

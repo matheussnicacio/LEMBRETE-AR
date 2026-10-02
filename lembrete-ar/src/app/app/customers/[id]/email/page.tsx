@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { scoped } from "@/lib/db";
 import { requireSession } from "@/lib/session";
 import EmailComposer from "@/components/EmailComposer";
+import { emailProvider, isResendSandbox } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +36,8 @@ export default async function EnviarEmail({ params, searchParams }: { params: { 
     { id: "branco", label: "Em branco", subject: "", body: `Ola, ${nome}!\n\n` },
   ];
 
-  const testMode = !process.env.RESEND_API_KEY;
-  const sandboxFrom = !process.env.EMAIL_FROM || process.env.EMAIL_FROM.includes("resend.dev");
+  const testMode = emailProvider() === "none";
+  const sandboxFrom = isResendSandbox();
 
   return (
     <>
@@ -57,8 +58,8 @@ export default async function EnviarEmail({ params, searchParams }: { params: { 
         <div className="card"><p style={{ margin: 0 }}>Este cliente pediu para nao receber mais mensagens, entao o envio esta bloqueado.</p></div>
       ) : (
         <>
-          {testMode && <div className="card"><p className="muted" style={{ margin: 0 }}><strong>Modo teste:</strong> o servidor esta sem RESEND_API_KEY, entao os e-mails nao saem de verdade (aparecem so no terminal).</p></div>}
-          {!testMode && sandboxFrom && <div className="card"><p className="muted" style={{ margin: 0 }}><strong>Remetente de testes:</strong> com onboarding@resend.dev o Resend so entrega para o e-mail da sua conta. Para enviar a clientes, verifique um dominio seu no Resend e ajuste o EMAIL_FROM.</p></div>}
+          {testMode && <div className="card"><p className="muted" style={{ margin: 0 }}><strong>Modo teste:</strong> nenhum provedor de e-mail configurado (RESEND_API_KEY ou SMTP_HOST), entao os e-mails nao saem de verdade (aparecem so no terminal).</p></div>}
+          {sandboxFrom && <div className="card"><p className="muted" style={{ margin: 0 }}><strong>Remetente de testes:</strong> com onboarding@resend.dev o Resend so entrega para o e-mail da sua conta. Para enviar a qualquer pessoa, verifique um dominio seu no Resend ou configure um SMTP (veja o .env.example).</p></div>}
           <div className="card">
             <div className="row"><span className="muted">Para</span><span>{c.name} &lt;{c.email}&gt;</span></div>
             <div className="row"><span className="muted">Respostas vao para</span><span>seu e-mail de login</span></div>
