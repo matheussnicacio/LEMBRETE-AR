@@ -54,6 +54,14 @@ export default async function ClientePage({ params }: { params: { id: string } }
     [params.id]
   )).rows;
 
+  const emails = (await db.q(
+    `select id, subject, status, to_email, created_at from email_messages
+      where account_id=$1 and customer_id=$2 order by created_at desc limit 20`,
+    [params.id]
+  )).rows;
+  const fmtDT = (d: Date) => new Date(d).toLocaleString("pt-BR", { timeZone: tz, dateStyle: "short", timeStyle: "short" });
+  const EMAIL_STATUS: Record<string, [string, string]> = { sent: ["Enviado", "ok"], failed: ["Falhou", "bad"], simulated: ["Teste (nao enviado)", "warn"] };
+
   const total = services.reduce((n, x) => n + (x.price_cents ?? 0), 0);
   const [consentLabel, consentTone] = CONSENT[customer.consent_status] ?? CONSENT.unknown;
 
@@ -72,6 +80,7 @@ export default async function ClientePage({ params }: { params: { id: string } }
             Chamar no WhatsApp
           </a>
         )}
+        <Link className="btn ghost" href={`/app/customers/${customer.id}/email`}>Enviar e-mail</Link>
       </div>
 
       <h2>Equipamentos</h2>
@@ -117,6 +126,22 @@ export default async function ClientePage({ params }: { params: { id: string } }
               {sv.notes && <div className="muted">{sv.notes}</div>}
             </div>
           ))}
+        </div>
+      )}
+
+      <h2 style={{ marginTop: 32 }}>E-mails enviados</h2>
+      {emails.length === 0 && <div className="card"><p className="muted" style={{ margin: 0 }}>Nenhum e-mail enviado por aqui ainda.</p></div>}
+      {emails.length > 0 && (
+        <div className="card timeline">
+          {emails.map((m) => {
+            const [label, tone] = EMAIL_STATUS[m.status] ?? ["—", "neutral"];
+            return (
+              <div className="tl-item" key={m.id}>
+                <div className="row"><strong>{m.subject}</strong><span className={`badge ${tone}`}>{label}</span></div>
+                <div className="muted">{fmtDT(m.created_at)} · {m.to_email}</div>
+              </div>
+            );
+          })}
         </div>
       )}
 

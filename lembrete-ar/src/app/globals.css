@@ -122,3 +122,8 @@ a.tl-link:hover{background:rgba(9,30,66,.03)}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex-shrink:0;padding:6px 14px;border-radius:999px;border:1px solid var(--input-border);background:rgba(255,255,255,.7);color:var(--text);text-decoration:none;font-size:.88rem;font-weight:600}
 .chip.on{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* textarea (composicao de e-mail) */
+textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--input-border);background:var(--input-bg);color:var(--text);font:inherit;outline:none;resize:vertical;min-height:160px;transition:border-color .15s,box-shadow .15s}
+textarea:focus{border-color:var(--input-focus);box-shadow:0 0 0 3px rgba(76,154,255,.25)}
+button.chip{font:inherit;font-size:.88rem;font-weight:600;cursor:pointer}
