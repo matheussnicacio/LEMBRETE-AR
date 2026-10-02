@@ -3,7 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const ITEMS = [
-  { href: "/app", label: "Hoje", exact: true },
+  { href: "/app", label: "Inicio", exact: true },
+  { href: "/app/hoje", label: "Hoje" },
   { href: "/app/customers", label: "Clientes" },
   { href: "/app/service/new", label: "+ Servico" },
 ];

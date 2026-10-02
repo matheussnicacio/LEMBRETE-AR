@@ -1,72 +1,90 @@
 import Link from "next/link";
 import { scoped } from "@/lib/db";
 import { requireSession } from "@/lib/session";
-import { daysBetween, formatBR, todayIn } from "@/lib/dates";
-import { renderWaMessage } from "@/lib/templates";
-import WhatsAppButton from "@/components/WhatsAppButton";
+import { todayIn } from "@/lib/dates";
+import Icon, { IconCircle } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
-export default async function Hoje() {
+// cores da paleta Atlassian
+const C = { blue: "#0052CC", red: "#DE350B", orange: "#FF991F", green: "#00875A", purple: "#6554C0", gray: "#6B778C" };
+
+function Tile({ href, icon, color, count, label }: { href: string; icon: Parameters<typeof IconCircle>[0]["name"]; color: string; count: number; label: string }) {
+  return (
+    <Link href={href} className="tile card-link glass-panel">
+      <div className="tile-top">
+        <IconCircle name={icon} color={color} />
+        <span className="count">{count}</span>
+      </div>
+      <div className="tile-label">{label}</div>
+    </Link>
+  );
+}
+
+export default async function Inicio() {
   const s = requireSession();
   const db = scoped(s.accountId);
-  const acc = (await db.q("select name, timezone, wa_template from accounts where id=$1")).rows[0];
+  const acc = (await db.q("select name, timezone from accounts where id=$1")).rows[0];
   const today = todayIn(acc.timezone);
-  const base = process.env.APP_URL ?? "";
 
-  const { rows } = await db.q(
-    `select r.id, r.token, r.due_on::text, e.label, e.btu, c.name, c.phone_e164
-       from reminders r
-       join equipment e on e.id=r.equipment_id
-       join customers c on c.id=e.customer_id
+  const hoje = (await db.q(
+    `select count(*)::int as n from reminders r
+       join equipment e on e.id=r.equipment_id join customers c on c.id=e.customer_id
       where r.account_id=$1 and r.channel='whatsapp_manual' and r.status='pending'
-        and r.scheduled_for <= now() and c.consent_status <> 'revoked'
-      order by r.due_on asc`);
-  const bookings = (await db.q(
-    `select b.id, b.preferred_period, c.name, c.phone_e164
-       from booking_requests b join customers c on c.id=b.customer_id
-      where b.account_id=$1 and b.status='new' order by b.created_at desc limit 10`)).rows;
+        and r.scheduled_for <= now() and c.consent_status <> 'revoked'`)).rows[0].n;
+
+  const pedidos = (await db.q("select count(*)::int as n from booking_requests where account_id=$1 and status='new'")).rows[0].n;
+
+  const k = (await db.q(
+    `select
+       count(distinct c.id) filter (where c.active and c.consent_status<>'revoked' and e.next_due_on < $2::date)::int as vencidos,
+       count(distinct c.id) filter (where c.active and c.consent_status<>'revoked' and e.next_due_on between $2::date and $2::date + 30)::int as proximos,
+       count(distinct c.id) filter (where c.active and e.last_service_on is null)::int as sem_data,
+       count(distinct c.id) filter (where c.active and c.consent_status='revoked')::int as revogados,
+       count(distinct c.id) filter (where c.active)::int as total
+     from customers c left join equipment e on e.customer_id=c.id and e.active
+    where c.account_id=$1`, [today])).rows[0];
+
+  const dia = new Intl.DateTimeFormat("pt-BR", { timeZone: acc.timezone, weekday: "long", day: "numeric", month: "long" }).format(new Date());
+
+  const listas = [
+    { href: "/app/customers", icon: "users" as const, color: C.purple, name: "Todos os clientes", n: k.total },
+    { href: "/app/customers?filtro=sem_data", icon: "pencil" as const, color: C.orange, name: "Completar data do servico", n: k.sem_data },
+    { href: "/app/customers?filtro=revogados", icon: "bellOff" as const, color: C.gray, name: "Nao querem receber", n: k.revogados },
+  ];
 
   return (
     <>
-      <h1>Hoje: {rows.length} {rows.length === 1 ? "cliente" : "clientes"} para lembrar</h1>
-      {rows.length === 0 && (
-        <div className="card">
-          <p>Nada para lembrar agora.</p>
-          <Link className="btn" href="/app/customers/new">Cadastrar cliente</Link>
-        </div>
-      )}
-      {rows.map((r) => {
-        const diff = daysBetween(today, r.due_on);
-        const msg = renderWaMessage(acc.wa_template, {
-          nome: r.name, empresa: acc.name, equipamento: r.label, link: `${base}/r/${r.token}`,
-        });
-        const href = r.phone_e164 ? `https://wa.me/${r.phone_e164}?text=${encodeURIComponent(msg)}` : "";
-        return (
-          <div className="card" key={r.id}>
-            <div className="row">
-              <strong>{r.name}</strong>
-              <span className={diff < 0 ? "late" : "muted"}>
-                {diff < 0 ? `venceu ha ${-diff}d` : diff === 0 ? "vence hoje" : `vence em ${diff}d`}
-              </span>
-            </div>
-            <div className="muted">{r.label}{r.btu ? ` ${r.btu.toLocaleString("pt-BR")} BTU` : ""} · {formatBR(r.due_on)}</div>
-            {href ? <WhatsAppButton id={r.id} href={href} /> : <p className="err">Cliente sem telefone valido.</p>}
-          </div>
-        );
-      })}
+      <div className="home-head">
+        <h1>Lembretes</h1>
+        <span className="muted">{dia.charAt(0).toUpperCase() + dia.slice(1)} · {acc.name}</span>
+      </div>
 
-      {bookings.length > 0 && (
-        <>
-          <h1 style={{ marginTop: 32 }}>Pedidos de agendamento</h1>
-          {bookings.map((b) => (
-            <div className="card" key={b.id}>
-              <div className="row"><strong>{b.name}</strong><span className="muted">{b.preferred_period ?? ""}</span></div>
-              {b.phone_e164 && <a className="btn ghost" href={`https://wa.me/${b.phone_e164}`} target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>}
-            </div>
-          ))}
-        </>
-      )}
+      <div className="tiles">
+        <Tile href="/app/hoje" icon="calendar" color={C.blue} count={hoje} label="Hoje" />
+        <Tile href="/app/customers?filtro=vencidos" icon="alert" color={C.red} count={k.vencidos} label="Vencidos" />
+        <Tile href="/app/customers?filtro=proximos" icon="clock" color={C.orange} count={k.proximos} label="Proximos 30 dias" />
+        <Tile href="/app/hoje#pedidos" icon="inbox" color={C.green} count={pedidos} label="Pedidos de agendamento" />
+      </div>
+
+      <h2>Minhas Listas</h2>
+      <div className="group glass-panel">
+        {listas.map((l) => (
+          <Link key={l.href} href={l.href} className="group-row">
+            <IconCircle name={l.icon} color={l.color} size={30} />
+            <span className="group-name">{l.name}</span>
+            <span className="muted">{l.n}</span>
+            <span className="chev" aria-hidden="true">›</span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="home-actions">
+        <Link href="/app/service/new" className="act">
+          <span className="plus"><Icon name="plus" /></span> Servico feito
+        </Link>
+        <Link href="/app/customers/new" className="act">Novo cliente</Link>
+      </div>
     </>
   );
 }
